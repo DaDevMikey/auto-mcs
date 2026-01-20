@@ -1,4 +1,5 @@
 from datetime import datetime as dt
+from typing import Optional
 import subprocess
 import requests
 import typing
@@ -440,7 +441,7 @@ port = 25577
             # Iterate over self and children to find Velocity process
             try:
                 parent = psutil.Process(self.service.pid)
-            except KeyError:
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
                 parent = self.service
 
             # Kill the process tree
@@ -461,11 +462,9 @@ port = 25577
             except Exception as e:
                 self._send_log(f"Error stopping Velocity: {format_traceback(e)}", 'error')
 
-            self.service.kill()
             self._send_log(f"Stopped Velocity proxy with PID {pid}", 'info')
 
         return_code = self.service.poll() if self.service else 0
-        del self.service
         self.service = None
 
         return return_code
@@ -514,7 +513,7 @@ port = 25577
 
 
 # Global Velocity manager
-manager: VelocityManager | None = None
+manager: Optional[VelocityManager] = None
 
 def init_manager():
     global manager
