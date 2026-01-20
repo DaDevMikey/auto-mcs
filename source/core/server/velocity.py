@@ -438,14 +438,11 @@ port = 25577
         if self.service and self.service.poll() is None:
             pid = self.service.pid
 
-            # Iterate over self and children to find Velocity process
+            # Try to use psutil for graceful shutdown
             try:
                 parent = psutil.Process(self.service.pid)
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                parent = self.service
-
-            # Kill the process tree
-            try:
+                
+                # Kill the process tree
                 for proc in parent.children(recursive=True):
                     proc.terminate()
                 parent.terminate()
@@ -459,8 +456,19 @@ port = 25577
                         proc.kill()
                     parent.kill()
                     
-            except Exception as e:
-                self._send_log(f"Error stopping Velocity: {format_traceback(e)}", 'error')
+            except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+                # Fallback to basic subprocess termination
+                self._send_log(f"psutil failed, using basic termination: {e}", 'warning')
+                try:
+                    self.service.terminate()
+                    # Wait a bit for graceful shutdown
+                    try:
+                        self.service.wait(timeout=10)
+                    except subprocess.TimeoutExpired:
+                        # Force kill if still running
+                        self.service.kill()
+                except Exception as kill_error:
+                    self._send_log(f"Error stopping Velocity: {format_traceback(kill_error)}", 'error')
 
             self._send_log(f"Stopped Velocity proxy with PID {pid}", 'info')
 
