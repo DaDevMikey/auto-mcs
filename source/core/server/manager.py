@@ -21,7 +21,7 @@ import re
 
 from source.core.server.acl import AclManager, get_uuid, check_online
 from source.core.server.backup import BackupManager
-from source.core.server import backup, playit
+from source.core.server import backup, playit, velocity
 from source.core import constants, telepath
 from source.core.constants import (
 
@@ -99,6 +99,9 @@ class ServerObject():
         self.custom_flags:       str            = ""
         self.is_modpack:         str            = ""
         self.proxy_enabled:      bool           = False
+        self.velocity_enabled:   bool           = False
+        self.velocity_port:      int            = 25577
+        self.velocity_mode:      str            = "modern"
         self.geyser_enabled:     bool           = False
         self.auto_update:        str            = "false"
         self.update_string:      str            = ""
@@ -268,6 +271,22 @@ class ServerObject():
                 self.geyser_enabled = (supported and enabled)
         except: self.geyser_enabled = False
 
+        # Load Velocity proxy settings
+        try:
+            if self.config_file.get("general", "enableVelocity"):
+                self.velocity_enabled = self.config_file.get("general", "enableVelocity").lower() == 'true'
+        except: self.velocity_enabled = False
+
+        try:
+            if self.config_file.get("general", "velocityPort"):
+                self.velocity_port = int(self.config_file.get("general", "velocityPort"))
+        except: self.velocity_port = 25577
+
+        try:
+            if self.config_file.get("general", "velocityMode"):
+                self.velocity_mode = self.config_file.get("general", "velocityMode").lower()
+        except: self.velocity_mode = "modern"
+
 
         # Check update properties for UI stuff if online
         self.update_string = ''
@@ -413,6 +432,67 @@ class ServerObject():
     def get_playit_url(self):
         if not playit.manager.initialized: playit.manager.initialize()
         return playit.manager.agent_web_url
+
+    # Velocity proxy management methods
+    def velocity_installed(self) -> bool:
+        """Check if Velocity is installed"""
+        if not velocity.manager:
+            velocity.init_manager()
+        return velocity.manager._check_installed()
+
+    def install_velocity(self, version: str = None) -> bool:
+        """Install Velocity proxy"""
+        if not velocity.manager:
+            velocity.init_manager()
+        return velocity.manager.install_velocity(version)
+
+    def enable_velocity(self, enabled: bool):
+        """Enable or disable Velocity for this server"""
+        self.config_file.set("general", "enableVelocity", str(enabled).lower())
+        self.write_config()
+        self.velocity_enabled = enabled
+        action = 'enabled' if enabled else 'disabled'
+        self._send_log(f"Velocity proxy is now {action} for this server", 'info')
+
+    def get_velocity_config(self) -> dict:
+        """Get current Velocity configuration"""
+        if not velocity.manager:
+            velocity.init_manager()
+        return {
+            'enabled': self.velocity_enabled,
+            'port': self.velocity_port,
+            'mode': self.velocity_mode,
+            'installed': self.velocity_installed(),
+            'manager_config': velocity.manager.get_velocity_config()
+        }
+
+    def set_velocity_config(self, port: int = None, mode: str = None):
+        """Set Velocity configuration"""
+        if port is not None:
+            self.config_file.set("general", "velocityPort", str(port))
+            self.velocity_port = port
+        if mode is not None:
+            self.config_file.set("general", "velocityMode", mode.lower())
+            self.velocity_mode = mode.lower()
+        self.write_config()
+        self._send_log(f"Updated Velocity configuration: port={self.velocity_port}, mode={self.velocity_mode}", 'info')
+
+    def add_to_velocity_network(self, proxy_server):
+        """Add this server to a Velocity network"""
+        if not velocity.manager:
+            velocity.init_manager()
+        
+        # Add this server as a backend server
+        velocity.manager.add_server_connection(
+            name=self.name,
+            address="127.0.0.1",
+            port=int(self.port) if self.port else 25565
+        )
+        
+        # Enable forwarding on this backend server
+        velocity.manager.enable_forwarding(self.server_path)
+        
+        self._send_log(f"Added '{self.name}' to Velocity network", 'info')
 
     # Writes changes to 'server.properties' and 'auto-mcs.ini'
     def write_config(self, remote_data={}):
