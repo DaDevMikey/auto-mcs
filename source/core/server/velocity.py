@@ -3,10 +3,22 @@ import subprocess
 import requests
 import typing
 import psutil
+import secrets
+import base64
 import time
 import json
 import os
 import re
+
+try:
+    import toml
+except ImportError:
+    toml = None
+
+try:
+    import yaml
+except ImportError:
+    yaml = None
 
 if typing.TYPE_CHECKING:
     from source.core.server.manager import ServerObject
@@ -207,8 +219,6 @@ class VelocityManager():
 
     # Generate forwarding secret for player info forwarding
     def _generate_forwarding_secret(self) -> str:
-        import secrets
-        import base64
         # Generate a 256-bit (32-byte) secret key
         secret_bytes = secrets.token_bytes(32)
         # Encode as base64
@@ -218,7 +228,9 @@ class VelocityManager():
     def _load_config(self) -> bool:
         if os.path.exists(self.config_path):
             try:
-                import toml
+                if toml is None:
+                    self._send_log("toml library not available, cannot load config", 'warning')
+                    return False
                 with open(self.config_path, 'r', encoding='utf-8') as f:
                     self.config = toml.load(f)
                 self._send_log(f"Loaded Velocity configuration from '{self.config_path}'")
@@ -338,11 +350,14 @@ port = 25577
         Configure a backend Paper/Spigot server to accept Velocity forwarding.
         This updates the server's paper-global.yml or spigot.yml configuration.
         """
+        if yaml is None:
+            self._send_log("yaml library not available, cannot configure forwarding", 'error')
+            return False
+            
         try:
             # For Paper servers (Paper 1.19+)
             paper_config = os.path.join(server_path, 'config', 'paper-global.yml')
             if os.path.exists(paper_config):
-                import yaml
                 with open(paper_config, 'r') as f:
                     config = yaml.safe_load(f)
                 
@@ -369,7 +384,6 @@ port = 25577
             # For Spigot/BungeeCord servers (legacy)
             spigot_config = os.path.join(server_path, 'spigot.yml')
             if os.path.exists(spigot_config):
-                import yaml
                 with open(spigot_config, 'r') as f:
                     config = yaml.safe_load(f)
                 
