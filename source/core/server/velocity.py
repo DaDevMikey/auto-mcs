@@ -134,8 +134,8 @@ class VelocityManager():
             return False
 
         # Get download URL
-        download_url, filename = self._get_download_url(version, build)
-        if not download_url or not filename:
+        jar_url, filename = self._get_download_url(version, build)
+        if not jar_url or not filename:
             self._send_log(f"Failed to get download URL for Velocity {version} build {build}", 'error')
             return False
 
@@ -147,8 +147,8 @@ class VelocityManager():
             os.remove(self.jar_path)
 
         # Download new version
-        self._send_log(f"Installing Velocity {version} build {build} from '{download_url}'...", 'info')
-        download_url(download_url, filename, self.directory, progress_func)
+        self._send_log(f"Installing Velocity {version} build {build} from '{jar_url}'...", 'info')
+        download_url(jar_url, filename, self.directory, progress_func)
 
         # Update paths
         self.jar_path = os.path.join(self.directory, filename)
