@@ -7,6 +7,7 @@ Welcome to auto-mcs! This software provides a simple and easy-to-digest experien
 Some notable features include:
  - Create a server in less than a minute
  - No port forwarding required with our [playit.gg integration](https://playit.gg)
+ - **NEW: Velocity proxy support** for multi-server networks ([Guide](VELOCITY_GUIDE.md))
  - Mod & plug-in manager with Modrinth integration for search, installation, and updates
  - Import any modpack or existing server
  - Switch worlds, versions, or modloaders/distributions on the fly

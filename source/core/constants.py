@@ -1039,6 +1039,77 @@ def check_subnet(addr: str) -> bool:
 # Variables for use in the desktop UI
 background_color:         tuple = (0.115, 0.115, 0.182, 1)
 
+# Material 3 Expressive Color System
+# https://m3.material.io/styles/color/the-color-system/key-colors-tones
+material3_colors = {
+    # Primary colors - vibrant purple
+    'primary':                  '#6750A4',
+    'on_primary':               '#FFFFFF',
+    'primary_container':        '#EADDFF',
+    'on_primary_container':     '#21005D',
+    
+    # Secondary colors
+    'secondary':                '#625B71',
+    'on_secondary':             '#FFFFFF',
+    'secondary_container':      '#E8DEF8',
+    'on_secondary_container':   '#1D192B',
+    
+    # Tertiary colors
+    'tertiary':                 '#7D5260',
+    'on_tertiary':              '#FFFFFF',
+    'tertiary_container':       '#FFD8E4',
+    'on_tertiary_container':    '#31111D',
+    
+    # Surface colors (dark mode)
+    'surface':                  '#1C1B1F',
+    'surface_variant':          '#49454F',
+    'on_surface':               '#E6E1E5',
+    'on_surface_variant':       '#CAC4D0',
+    'outline':                  '#938F99',
+    'outline_variant':          '#49454F',
+    
+    # Error colors
+    'error':                    '#F2B8B5',
+    'on_error':                 '#601410',
+    'error_container':          '#8C1D18',
+    'on_error_container':       '#F9DEDC',
+    
+    # Success colors (custom for server states)
+    'success':                  '#A8DAB5',
+    'on_success':               '#0E3818',
+    'success_container':        '#1E4F2B',
+    'on_success_container':     '#C4F0D2',
+}
+
+# Material 3 Typography Scale
+# https://m3.material.io/styles/typography/type-scale-tokens
+material3_typography = {
+    # Display styles - largest text
+    'display_large':            {'font': 'Figtree-Bold',      'size': 57},
+    'display_medium':           {'font': 'Figtree-Bold',      'size': 45},
+    'display_small':            {'font': 'Figtree-Bold',      'size': 36},
+    
+    # Headline styles - for major sections
+    'headline_large':           {'font': 'Figtree-Bold',      'size': 32},
+    'headline_medium':          {'font': 'Figtree-Bold',      'size': 28},
+    'headline_small':           {'font': 'Figtree-Bold',      'size': 24},
+    
+    # Title styles - for cards and list items
+    'title_large':              {'font': 'Figtree-Medium',    'size': 22},
+    'title_medium':             {'font': 'Figtree-Medium',    'size': 16},
+    'title_small':              {'font': 'Figtree-Medium',    'size': 14},
+    
+    # Body styles - for primary text content
+    'body_large':               {'font': 'Figtree-Regular',   'size': 16},
+    'body_medium':              {'font': 'Figtree-Regular',   'size': 14},
+    'body_small':               {'font': 'Figtree-Regular',   'size': 12},
+    
+    # Label styles - for buttons and labels
+    'label_large':              {'font': 'Figtree-Medium',    'size': 14},
+    'label_medium':             {'font': 'Figtree-Medium',    'size': 12},
+    'label_small':              {'font': 'Figtree-Medium',    'size': 11},
+}
+
 fonts = {
     'regular':      'Figtree-Regular',             'medium':       'Figtree-Medium',
     'bold':         'Figtree-Bold',                'very-bold':    'Figtree-ExtraBold',
